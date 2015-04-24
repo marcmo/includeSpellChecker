@@ -1,0 +1,39 @@
+Name:                includeSpellChecker
+
+Version:             0.1
+
+Synopsis:            clean up wrongly spelled include paths in c/c++ files
+
+-- A longer description of the package.
+-- Description:
+
+License:             BSD3
+
+License-file:        LICENSE
+
+Author:              Oliver Mueller
+
+Maintainer:          oliver.mueller@gmail.com
+
+Category:            Development
+
+Build-type:          Simple
+
+Cabal-version:       >=1.2
+
+
+Executable includeSpellChecker
+  Main-is:             checker.hs
+
+  Build-Depends:       base>=4,
+                       bytestring,
+                       HUnit,
+                       QuickCheck,
+                       text,
+                       split,
+                       regex-compat,
+                       containers,
+                       filepath,
+                       filemanip
+
+
