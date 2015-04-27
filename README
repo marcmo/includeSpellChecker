@@ -1,0 +1,3 @@
+ever tried to compile C/C++ sources that someone edited on Windows?
+probably a lot of case-errors in the include paths.
+this utility tries to find problematic include paths
