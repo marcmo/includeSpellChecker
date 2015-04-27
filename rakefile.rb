@@ -44,3 +44,15 @@ def runProfiling(options,psOutput)
 end
 
 task :default => [:clean, :build]
+
+desc 'run tests'
+task :test do
+  sh "cabal configure --enable-tests"
+  sh "cabal build"
+  sh "cabal test"
+end
+
+desc 'install missing dependencies'
+task :deps do
+  sh "cabal install --only-dependencies"
+end

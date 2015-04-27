@@ -28,8 +28,6 @@ Executable includeSpellChecker
 
   Build-Depends:      base>=4,
                       bytestring,
-                      HUnit,
-                      QuickCheck,
                       text,
                       split,
                       regex-compat,
@@ -49,6 +47,9 @@ test-suite tests
                       bytestring,
                       HUnit,
                       QuickCheck,
+                      test-framework,
+                      test-framework-quickcheck2,
+                      test-framework-hunit,
                       text,
                       split,
                       regex-compat,
