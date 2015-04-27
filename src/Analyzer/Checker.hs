@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+module Analyzer.Checker where
+
 import System.FilePath.Find
 import System.FilePath.Posix
 import qualified Data.ByteString as BS
@@ -7,15 +9,10 @@ import Control.Applicative
 import qualified Data.ByteString.Char8 as BSC
 import Text.Regex
 import Data.Maybe(isJust)
-import System.Environment(getArgs)
 import qualified Data.List as L
 import Data.List(foldl')
-import Data.List.Split(splitOn)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
-import Test.QuickCheck
-import Test.HUnit((@=?),Test(TestCase),runTestTT)
-import Data.Char(toLower,isLower,toUpper)
 -- import Debug.Trace
 -- trc xs = trace (concat xs) -- debug on
 trc _ a = a -- debug off
@@ -34,7 +31,7 @@ insert = insert' [] where
 member :: (Ord a,Show a) => [a] -> Trie a -> Maybe [a]
 member _ Empty = Nothing
 member [] (Node b _) = b
-member (x:xs) (Node b tr) = maybe Nothing (member xs) (M.lookup x tr)
+member (x:xs) (Node _ tr) = maybe Nothing (member xs) (M.lookup x tr)
 
 fromList = foldr insert Empty
 
@@ -68,10 +65,10 @@ cutIncludePath i
     | otherwise = error $ "no match for include path" ++ T.unpack i
 
 fixIncludes :: BSC.ByteString -> Trie CaseInsensitive -> Maybe BSC.ByteString
-fixIncludes content availablePaths
+fixIncludes _content availablePaths
   | n == 0 = Nothing
   | otherwise = Just $ BSC.unlines $ reverse finalLines
-  where allLines = BSC.lines content
+  where allLines = BSC.lines _content
         (finalLines,n) = foldl' maybeFixLine ([],0) allLines
         maybeFixLine (acc,nn) x =
           maybe (x:acc,nn)
@@ -98,57 +95,5 @@ bestMatch include validCaseTrie = member reversedIncludeCI validCaseTrie >>=
       reversedIncludeCI = map CI (reverse $ splitP include)
       includeCI = map CI (splitP include)
       splitP = map T.pack . splitDirectories . T.unpack
-
-
-main = do
-  (p:ws:_) <- getArgs
-  hss <- headerFiles ws
-  let validCaseTrie = toTrie hss
-  headersAndSources <- headerAndSourceFiles p
-  mapM_ (fixFile validCaseTrie) headersAndSources
-    where fixFile valid h = do
-              c <- BS.readFile h
-              maybe
-                (putStr ".")
-                (\c -> print ("fixed file " ++ h) >> BS.writeFile h c)
-                (fixIncludes c valid)
-
--- tests
---
-test = runTestTT $ TestCase $ Just "a/b/TEST.h" @=?
-    bestMatch "a/b/test.h" (toTrie ["b/TEST.h","a/b/c.h","/one/a/b/TEST.h"])
-
-data Path = PA { getPath :: String } deriving (Eq,Show)
-instance Arbitrary Path where
-  arbitrary = PA <$> L.intercalate "/" <$> resize 10 (listOf1 seg)
-    where seg = resize 20 $ listOf1 (elements $ ['a'..'z'] ++ ['A'..'Z'])
-
-prop_findBetterMatch :: [Path] -> Property
-prop_findBetterMatch ps = length ps > 1 ==>
-   do let xx@(c:_) = map getPath ps
-      (x,n) <- croppedPath c
-      return $ bestMatch (changeCase (T.pack x)) (toTrie xx) == Just (T.pack x)
-
-data IncludeString = IS { getString :: (String,String) } deriving (Eq,Show)
-instance Arbitrary IncludeString where
-  arbitrary = do
-    (PA s) <- arbitrary :: Gen Path
-    (open,close) <- elements [("<",">"),("\"","\"")]
-    rest <- arbitrary
-    return $ IS (s, "#include " ++ open ++ s ++ close ++ rest)
-
-prop_cutIncludePath (IS (s,full)) =
-  let (core,_,_) = cutIncludePath (T.pack full) in
-  T.unpack core == s
-
-croppedPath ::  String -> Gen (String,Int)
-croppedPath p = do
-  let choppedInc = splitOn "/" p
-  n <- choose (0,length choppedInc -1)
-  return (L.intercalate "/" (drop n choppedInc),n)
-
-changeCase :: T.Text -> T.Text
-changeCase = T.pack . map changed . T.unpack
-  where changed c = if isLower c then toUpper c else toLower c
 
 

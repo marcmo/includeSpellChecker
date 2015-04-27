@@ -1,6 +1,6 @@
 Name:                includeSpellChecker
 
-Version:             0.1
+Version:             0.2
 
 Synopsis:            clean up wrongly spelled include paths in c/c++ files
 
@@ -23,17 +23,35 @@ Cabal-version:       >=1.2
 
 
 Executable includeSpellChecker
-  Main-is:             checker.hs
+  hs-source-dirs:     src
+  Main-is:            Main.hs
 
-  Build-Depends:       base>=4,
-                       bytestring,
-                       HUnit,
-                       QuickCheck,
-                       text,
-                       split,
-                       regex-compat,
-                       containers,
-                       filepath,
-                       filemanip
+  Build-Depends:      base>=4,
+                      bytestring,
+                      HUnit,
+                      QuickCheck,
+                      text,
+                      split,
+                      regex-compat,
+                      containers,
+                      filepath,
+                      filemanip
 
 
+test-suite tests
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: tests,src
+  main-is:        Properties.hs
+
+  ghc-options: -Wall -threaded -rtsopts
+
+  build-depends:
+                      bytestring,
+                      HUnit,
+                      QuickCheck,
+                      text,
+                      split,
+                      regex-compat,
+                      containers,
+                      filepath,
+                      filemanip

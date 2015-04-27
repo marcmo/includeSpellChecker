@@ -35,7 +35,7 @@ end
 
 def runProfiling(options,psOutput)
   benchmark = Benchmark.realtime do
-    sh "time ./#{ProfilingExecutable} < #{Input} #{options}"      
+    sh "time ./#{ProfilingExecutable} < #{Input} #{options}"
   end
   puts "computing step took: " + sprintf("%.2f", benchmark)
   if psOutput
